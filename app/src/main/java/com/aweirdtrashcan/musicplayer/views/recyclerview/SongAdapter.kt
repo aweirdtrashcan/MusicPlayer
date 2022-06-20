@@ -1,4 +1,4 @@
-package com.aweirdtrashcan.musicplayer.recyclerview
+package com.aweirdtrashcan.musicplayer.views.recyclerview
 
 import android.net.Uri
 import android.view.LayoutInflater
@@ -6,9 +6,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.aweirdtrashcan.musicplayer.databinding.ActivityMainBinding
 import com.aweirdtrashcan.musicplayer.databinding.SongsAdapterListBinding
-import com.aweirdtrashcan.musicplayer.repository.Songs
+import com.aweirdtrashcan.musicplayer.models.Songs
 
 class SongAdapter(
     val onClick : (uri : Uri) -> Unit

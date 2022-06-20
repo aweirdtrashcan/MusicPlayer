@@ -1,35 +1,29 @@
-package com.aweirdtrashcan.musicplayer.views
+package com.aweirdtrashcan.musicplayer.views.activities
 
 import android.Manifest
-import android.content.ContentUris
 import android.content.pm.PackageManager
-import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.MediaStore
-import android.util.Log
-import android.widget.Toast
-import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.aweirdtrashcan.musicplayer.R
 import com.aweirdtrashcan.musicplayer.databinding.ActivityMainBinding
-import com.aweirdtrashcan.musicplayer.recyclerview.RecyclerViewItemDecoration
-import com.aweirdtrashcan.musicplayer.recyclerview.SongAdapter
-import com.aweirdtrashcan.musicplayer.repository.Songs
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import com.aweirdtrashcan.musicplayer.views.recyclerview.RecyclerViewItemDecoration
+import com.aweirdtrashcan.musicplayer.views.recyclerview.SongAdapter
+import com.aweirdtrashcan.musicplayer.models.Songs
+import com.aweirdtrashcan.musicplayer.viewmodels.MainViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.lang.NullPointerException
 
-open class MainActivity : AppCompatActivity() {
+@AndroidEntryPoint
+class MainActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivityMainBinding
 
@@ -46,6 +40,8 @@ open class MainActivity : AppCompatActivity() {
     private var isPlaying = false
 
     private val RecyclerViewItemDecoration = RecyclerViewItemDecoration(10)
+
+    private val viewModel : MainViewModel by viewModels<MainViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,8 +66,7 @@ open class MainActivity : AppCompatActivity() {
         askPermission()
 
         lifecycleScope.launch{
-            accessExternalMusic()
-            allSongs = accessExternalMusic().toMutableList()
+            allSongs = viewModel.getSongs().toMutableList()
             setupRecyclerView()
         }
 
@@ -122,54 +117,5 @@ open class MainActivity : AppCompatActivity() {
             permissions.launch(permissionToAsk)
         }
 
-    }
-
-    private suspend fun accessExternalMusic() : List <Songs> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val query = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
-                val projection = arrayOf(
-                    MediaStore.Audio.Media._ID,
-                    MediaStore.Audio.Media.DISPLAY_NAME,
-                    MediaStore.Audio.Media.ALBUM,
-                    MediaStore.Audio.Media.DURATION
-                )
-
-                val songs = mutableListOf<Songs>()
-                contentResolver.query(
-                    query,
-                    projection,
-                    null,
-                    null,
-                    null
-                )?.use { cursor ->
-                    val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                    val displayNameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
-                    val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-                    val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-
-                    while (cursor.moveToNext()) {
-                        val id = cursor.getLong(idColumn)
-                        val displayName = cursor.getString(displayNameColumn)
-                        val album = cursor.getString(albumColumn)
-                        val duration = cursor.getLong(durationColumn)
-
-                        val uriContent = ContentUris.withAppendedId(
-                            query,
-                            id
-                        )
-
-                        songs.add(Songs(id, displayName, album, duration, uriContent))
-
-                    }
-                    Log.d("Songs", songs.toString())
-                    songs.toList()
-                } ?: listOf()
-            } catch (e : Exception) {
-                e.printStackTrace()
-                Log.d("Error", e.toString())
-                listOf()
-            }
-        }
     }
 }

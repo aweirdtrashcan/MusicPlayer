@@ -1,4 +1,4 @@
-package com.aweirdtrashcan.musicplayer.recyclerview
+package com.aweirdtrashcan.musicplayer.views.recyclerview
 
 import android.graphics.Rect
 import android.view.View

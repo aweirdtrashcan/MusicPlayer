@@ -1,4 +1,4 @@
-package com.aweirdtrashcan.musicplayer.repository
+package com.aweirdtrashcan.musicplayer.models
 
 import android.net.Uri
 
